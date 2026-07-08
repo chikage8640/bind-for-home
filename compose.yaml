@@ -1,0 +1,11 @@
+services:
+  bind:
+    image: internetsystemsconsortium/bind9:9.20
+    ports:
+      - 53:53
+      - 53:53/udp
+      - 853:853
+    volumes:
+      - ./bind.conf:/etc/bind/named.conf:ro
+      - ./zones:/var/lib/bind:ro
+      - ./certs:/etc/bind/tls:ro

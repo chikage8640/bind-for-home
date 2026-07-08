@@ -1,0 +1,45 @@
+tls cloudflare-dot {
+    remote-hostname "one.one.one.one";
+};
+
+tls dot-server {
+    cert-file "/etc/bind/tls/cert.pem";
+    key-file  "/etc/bind/tls/key.pem";
+};
+
+options {
+    directory "/var/cache/bind";
+
+    listen-on port 53  { any; };
+    listen-on port 853 tls dot-server { any; };
+    listen-on-v6 { none; };
+
+    allow-query     { any; };
+    allow-recursion { any; };
+
+    dnssec-validation no;
+    recursion yes;
+};
+
+view "override" {
+    match-clients { HOME_IP_ADDR; };
+    recursion yes;
+
+    zone "rpz.override" {
+        type primary;
+        file "/var/lib/bind/rpz.override";
+    };
+
+    response-policy { zone "rpz.override"; };
+
+    forwarders port 853 tls cloudflare-dot { 1.1.1.1; 1.0.0.1; };
+    forward only;
+};
+
+view "default" {
+    match-clients { any; };
+    recursion yes;
+
+    forwarders port 853 tls cloudflare-dot { 1.1.1.1; 1.0.0.1; };
+    forward only;
+};
