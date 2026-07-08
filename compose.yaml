@@ -1,6 +1,7 @@
 services:
   bind:
     image: internetsystemsconsortium/bind9:9.20
+    restart: always
     ports:
       - 53:53
       - 53:53/udp
@@ -9,3 +10,41 @@ services:
       - ./bind.conf:/etc/bind/named.conf:ro
       - ./zones:/var/lib/bind:ro
       - ./certs:/etc/bind/tls:ro
+  certbot:
+    image: certbot/dns-cloudflare:latest
+    restart: always
+    environment:
+      EMAIL: ${EMAIL}
+      DOMAIN: ${DOMAIN}
+      CF_API_TOKEN: ${CF_API_TOKEN}
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/cache:/var/lib/letsencrypt
+      - ./certs:/bind-certs
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        echo "dns_cloudflare_api_token = $CF_API_TOKEN" > /cloudflare.ini
+        chmod 600 /cloudflare.ini
+
+        if [ ! -f /etc/letsencrypt/live/$DOMAIN/fullchain.pem ]; then
+            certbot certonly \
+                --non-interactive \
+                --agree-tos \
+                --email $EMAIL \
+                --dns-cloudflare \
+                --dns-cloudflare-credentials /cloudflare.ini \
+                --dns-cloudflare-propagation-seconds 60 \
+                --test-cert \
+                -d "*.$DOMAIN" \
+                --deploy-hook "cp -L /etc/letsencrypt/live/$DOMAIN/fullchain.pem /bind-certs/fullchain.pem && cp -L /etc/letsencrypt/live/$DOMAIN/privkey.pem /bind-certs/privkey.pem && chmod 644 /bind-certs/*.pem"
+        fi
+
+        while true; do
+            certbot renew \
+            --deploy-hook "cp -L /etc/letsencrypt/live/$DOMAIN/fullchain.pem /bind-certs/fullchain.pem && cp -L /etc/letsencrypt/live/$DOMAIN/privkey.pem /bind-certs/privkey.pem && chmod 644 /bind-certs/*.pem" \
+            --quiet
+            sleep 12h
+        done

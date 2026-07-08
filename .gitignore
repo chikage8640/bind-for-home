@@ -1,2 +1,3 @@
+.env
 bind.conf
 zones/rpz.override

@@ -3,8 +3,8 @@ tls cloudflare-dot {
 };
 
 tls dot-server {
-    cert-file "/etc/bind/tls/cert.pem";
-    key-file  "/etc/bind/tls/key.pem";
+    cert-file "/etc/bind/tls/fullchain.pem";
+    key-file  "/etc/bind/tls/privkey.pem";
 };
 
 options {
