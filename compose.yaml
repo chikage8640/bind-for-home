@@ -37,7 +37,6 @@ services:
                 --dns-cloudflare \
                 --dns-cloudflare-credentials /cloudflare.ini \
                 --dns-cloudflare-propagation-seconds 60 \
-                --test-cert \
                 -d "*.$DOMAIN" \
                 --deploy-hook "cp -L /etc/letsencrypt/live/$DOMAIN/fullchain.pem /bind-certs/fullchain.pem && cp -L /etc/letsencrypt/live/$DOMAIN/privkey.pem /bind-certs/privkey.pem && chmod 644 /bind-certs/*.pem"
         fi
