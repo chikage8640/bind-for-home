@@ -11,6 +11,7 @@ services:
       - ./bind.conf:/etc/bind/named.conf:ro
       - ./zones:/var/lib/bind:ro
       - ./certs:/etc/bind/tls:ro
+      - ./data:/etc/bind
       - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
 
   certbot:
