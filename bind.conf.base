@@ -1,5 +1,6 @@
 tls cloudflare-dot {
     remote-hostname "one.one.one.one";
+    ca-file "/etc/ssl/certs/ca-certificates.crt";
 };
 
 tls dot-server {
