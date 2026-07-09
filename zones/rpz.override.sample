@@ -1,4 +1,12 @@
 $TTL 60
-@  IN NS  localhost.
+@  IN SOA bill.ns.cloudflare.com. dns.cloudflare.com. (
+        2409088989 ; serial (Cloudflare のものに合わせ)
+        10000      ; refresh
+        2400       ; retry
+        604800     ; expire
+        1800 )     ; minimum TTL
+
+   IN NS  ns1.cloudflare.com.
+   IN NS  ns2.cloudflare.com.
 
 test.example.com  IN A  192.168.0.80
