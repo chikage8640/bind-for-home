@@ -20,6 +20,7 @@ options {
 
     dnssec-validation no;
     recursion yes;
+    minimal-responses yes;
 };
 
 view "override" {
