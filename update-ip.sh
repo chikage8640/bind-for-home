@@ -10,5 +10,5 @@ fi
 if ! grep -q "$IP" bind.conf; then
     echo "Updating BIND configuration with new IP: $IP"
     sed "s/HOME_IP_ADDR/$IP/g" bind.conf.base > bind.conf
-    docker compose exec bind rndc reload
+    docker compose restart bind
 fi
