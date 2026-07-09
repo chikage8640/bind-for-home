@@ -2,6 +2,9 @@ services:
   bind:
     image: ubuntu/bind9:9.20-26.04_stable
     restart: always
+    networks:
+      default:
+        ipv4_address: 192.168.53.10
     user: bind
     ports:
       - $IP:53:53
@@ -9,14 +12,23 @@ services:
       - $IP:853:853
     volumes:
       - ./bind.conf:/etc/bind/named.conf:ro
-      - ./zones:/var/lib/bind:ro
       - ./certs:/etc/bind/tls:ro
       - ./data:/etc/bind
       - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
-
+  dnsmasq:
+    image: dockurr/dnsmasq
+    restart: always
+    networks:
+      default:
+        ipv4_address: 192.168.53.20
+    volumes:
+      - ./dnsmasq.conf:/etc/dnsmasq.conf:ro
   certbot:
     image: certbot/dns-cloudflare:latest
     restart: always
+    networks:
+      default:
+        ipv4_address: 192.168.53.30
     environment:
       EMAIL: ${EMAIL}
       DOMAIN: ${DOMAIN}
@@ -63,3 +75,10 @@ services:
             sleep 12h &
             wait $!
         done
+
+networks:
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.53.0/24

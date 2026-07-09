@@ -20,20 +20,14 @@ options {
 
     dnssec-validation no;
     recursion yes;
+    minimal-responses yes;
 };
 
 view "override" {
     match-clients { HOME_IP_ADDR; };
     recursion yes;
 
-    zone "rpz.override" {
-        type primary;
-        file "/var/lib/bind/rpz.override";
-    };
-
-    response-policy { zone "rpz.override"; };
-
-    forwarders port 853 tls cloudflare-dot { 1.1.1.1; 1.0.0.1; };
+    forwarders { 192.168.53.20; };
     forward only;
 };
 
