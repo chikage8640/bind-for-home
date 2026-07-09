@@ -1,11 +1,4 @@
 $TTL 60
-@  IN SOA localhost. root.localhost. (
-        2026070801 ; serial
-        3600       ; refresh
-        900        ; retry
-        604800     ; expire
-        60 )       ; minimum TTL
-
-   IN NS  localhost.
+@  IN NS  localhost.
 
 test.example.com  IN A  192.168.0.80
