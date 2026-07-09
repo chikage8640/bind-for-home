@@ -1,15 +1,18 @@
 services:
   bind:
-    image: internetsystemsconsortium/bind9:9.20
+    image: ubuntu/bind9:9.20-26.04_stable
     restart: always
+    user: bind
     ports:
-      - 53:53
-      - 53:53/udp
-      - 853:853
+      - $IP:53:53
+      - $IP:53:53/udp
+      - $IP:853:853
     volumes:
       - ./bind.conf:/etc/bind/named.conf:ro
       - ./zones:/var/lib/bind:ro
       - ./certs:/etc/bind/tls:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+
   certbot:
     image: certbot/dns-cloudflare:latest
     restart: always
@@ -25,11 +28,21 @@ services:
       - /bin/sh
       - -c
       - |
-        set -eu
+        cleanup() {
+            echo "Received termination signal. Exiting..."
+            exit 0
+        }
+
+        trap cleanup TERM INT
+
         echo "dns_cloudflare_api_token = $CF_API_TOKEN" > /cloudflare.ini
         chmod 600 /cloudflare.ini
 
-        if [ ! -f /etc/letsencrypt/live/$DOMAIN/fullchain.pem ]; then
+        DEPLOY_HOOK='cp -L /etc/letsencrypt/live/'"$DOMAIN"'/fullchain.pem /bind-certs/fullchain.pem && \
+        cp -L /etc/letsencrypt/live/'"$DOMAIN"'/privkey.pem /bind-certs/privkey.pem && \
+        chmod 644 /bind-certs/*.pem'
+
+        if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
             certbot certonly \
                 --non-interactive \
                 --agree-tos \
@@ -38,12 +51,14 @@ services:
                 --dns-cloudflare-credentials /cloudflare.ini \
                 --dns-cloudflare-propagation-seconds 60 \
                 -d "*.$DOMAIN" \
-                --deploy-hook "cp -L /etc/letsencrypt/live/$DOMAIN/fullchain.pem /bind-certs/fullchain.pem && cp -L /etc/letsencrypt/live/$DOMAIN/privkey.pem /bind-certs/privkey.pem && chmod 644 /bind-certs/*.pem"
+                --deploy-hook "$$DEPLOY_HOOK"
         fi
 
         while true; do
             certbot renew \
-            --deploy-hook "cp -L /etc/letsencrypt/live/$DOMAIN/fullchain.pem /bind-certs/fullchain.pem && cp -L /etc/letsencrypt/live/$DOMAIN/privkey.pem /bind-certs/privkey.pem && chmod 644 /bind-certs/*.pem" \
-            --quiet
-            sleep 12h
+                --deploy-hook "$$DEPLOY_HOOK" \
+                --quiet
+
+            sleep 12h &
+            wait $!
         done
