@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd "$(dirname "$0")"
+
 # 引数にDDNSで更新されてるドメインを指定すると、そっからの通信を振り分けるようにBINDの設定を書き換える
 IP=$(dig +short $1)
 if [ -z "$IP" ]; then
