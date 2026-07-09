@@ -1,5 +1,6 @@
 cache-size=0
 
+local-ttl=60
 address=/test.example.com/192.168.0.80
 
 # その他のドメインは BIND に問い合わせ（ポート 53）
